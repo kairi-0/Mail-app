@@ -1,4 +1,4 @@
-import { SessionProvider } from "next-auth/react";
+import Providers from "./providers";
 
 export const metadata = {
   title: "顧客メール モニター",
@@ -9,9 +9,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ja">
       <body>
-        <SessionProvider>
+        <Providers>
           {children}
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );
