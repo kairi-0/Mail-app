@@ -1,17 +1,23 @@
 import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 import { google } from "googleapis";
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req) {
-  const session = await getServerSession();
-  if (!session) return Response.json({ error: "未認証" }, { status: 401 });
+  const session = await getServerSession(authOptions);
+  if (!session || !session.accessToken) {
+    return Response.json({ error: "未認証" }, { status: 401 });
+  }
 
   const { keywords, days } = await req.json();
 
   try {
-    const auth = new google.auth.OAuth2();
+    const auth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
     auth.setCredentials({ access_token: session.accessToken });
     const gmail = google.gmail({ version: "v1", auth });
 
@@ -58,6 +64,7 @@ export async function POST(req) {
 
     return Response.json({ results });
   } catch (err) {
+    console.error("API Error:", err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
